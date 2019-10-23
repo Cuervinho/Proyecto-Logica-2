@@ -1,0 +1,87 @@
+\documentclass{beamer}
+\usetheme{CambridgeUS}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb,amsfonts,latexsym,cancel}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage{subfigure}
+
+\title{Reglas del buscaminas}
+\author{Samuel Restrepo y Andrés Cuervo}
+\date{Octubre 2019} 
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}
+\frametitle{Regla 1}
+\framesubtitle{La primera casilla sin importar la elegida, retornara el numero 1 siempre, indicando que alrededor del cuadro elegido se encuentra una bomba.
+}
+
+Representación :\\
+Ci = la casilla i es una bomba\\
+$\neg{Ci}$ = la casilla i no es una bomba\\
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Representación lógica de la regla 1}
+$Casilla escogida \rightarrow   {Posibles casillas con bomba}$\\
+$\neg{C1} \rightarrow{(C2 \wedge{\neg{C4}} \wedge{\neg{C5}})\lor{(C4 \wedge{\neg{C2}} \wedge{\neg{C5}})}\lor{(C5 \wedge{\neg{C2}} \wedge{\neg{C4}})}}$\\
+$\neg{C2} \rightarrow{(C1 \wedge{\neg{C3}} \wedge{\neg{C4}} \wedge{\neg{C5}} \wedge{\neg{C6}}})$\\
+$\lor{(C3 \wedge{\neg{C1}} \wedge{\neg{C4}} \wedge{\neg{C5}}\wedge{\neg{C6}})}\lor{(C4 \wedge{\neg{C1}} \wedge{\neg{C3}} \wedge{\neg{C5}} \wedge{\neg{C6}})}$ \\
+$\lor{}$ .....\\
+$\neg{C3} \rightarrow{(C2 \wedge{\neg{C5}} \wedge{\neg{C6}})\lor{(C5 \wedge{\neg{C2}} \wedge{\neg{C6}})}\lor{(C6 \wedge{\neg{C2}} \wedge{\neg{C5}})}}$\\
+
+
+
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{Regla 2}
+\framesubtitle{Se tendran que elegir 2 casillas consecutivas. Se supondra igualmente que la segunda casilla tampoco corresponde a una bomba}
+
+$\neg{C1} \wedge{\neg{C2}} \rightarrow {(C4 \wedge{\neg{C3}} \wedge{\neg{C5}} \wedge{\neg{C6})\lor{(C5 \wedge{\neg{C3}} \wedge{\neg{C4}} \wedge{\neg{C6})}}}}$\\
+$\neg{C1} \wedge{\neg{C4}} \rightarrow {(C2 \wedge{\neg{C5}} \wedge{\neg{C7}} \wedge{\neg{C8})\lor{(C5 \wedge{\neg{C2}} \wedge{\neg{C7}} \wedge{\neg{C8})}}}}$\\
+$\neg{C2} \wedge{\neg{C3}} \rightarrow {(C5 \wedge{\neg{C1}} \wedge{\neg{C4}} \wedge{\neg{C6})\lor{(C6 \wedge{\neg{C1}} \wedge{\neg{C4}} \wedge{\neg{C5})}}}}$\\
+Y así con todas las posibles uniones de casillas consecutivas que son:\\
+$C2 \wedge{ C5} $\\
+$C3 \wedge{ C6} $\\
+$C4 \wedge{ C5} $\\
+$C4 \wedge{ C7} $\\
+$C5 \wedge{ C6} $\\
+$C5 \wedge{ C8} $\\
+$C6 \wedge{ C9} $\\
+$C7 \wedge{ C8} $\\
+$C8 \wedge{ C9} $\\
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{Regla 3}
+\framesubtitle{Se tomara un cuadro 3 POR 3}
+Al tomar un cuadro de 3x3 entonces habran 9 casillas: C1,C2,C3,C4,C5,C6,C7,C8 Y C9.\\
+\end{frame}
+
+\end{document}
+
+\begin{comment}
+$\neg{C2} \rightarrow{C1 V C3 V C4 V C5 V C6}$\\
+$\neg{C3} \rightarrow {C2 V C5 V C6}$\\
+$\neg{C4} \rightarrow {C1 V C2 V C5 V C7 V C8}$\\
+$\neg{C5} \rightarrow {C1 V C2 V C3 V C4 V C6 V C7 V C8 V C9}$\\
+$\neg{C6} \rightarrow {C2 V C3 V C5 V C8 V C9}$ \\
+$\neg{C7} \rightarrow {C4 V C5 V C8}$\\
+$\neg{C8} \rightarrow {C4 V C5 V C6 V C7 V C9}$\\
+$\neg{C9} \rightarrow {C5 V C6 V C8}$\\
+\end{comment}
