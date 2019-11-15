@@ -1,0 +1,101 @@
+\documentclass{beamer}
+\usetheme{CambridgeUS}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb,amsfonts,latexsym,cancel}
+\usepackage{float}
+\usepackage{graphicx}
+\graphicspath{{Videos/}}
+\usepackage{epstopdf}
+\usepackage{subfigure}
+
+\title{BUSCAMINAS}
+\author{Samuel Restrepo y Andrés Cuervo}
+\date{Octubre 2019}
+
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}
+\frametitle{Situación a representar}
+Queremos representar un caso del juego buscaminas de un tablero 3x3 en el cual cada casilla que se oprima va a tener el número 1, es decir, va a tener una bomba alrededor de esta.
+\end{frame}
+
+\begin{frame}
+\frametitle{El proposito}
+El propósito de representar este caso del juego buscaminas es para aprender a hacer uso del juego para que una persona que no conozca el juego se adapte fácilmente. Además, funciona para plantear situaciones de cómo se debe ganar con base en las elecciones que uno toma en el transcurso del juego. Por lo tanto, los dos propósitos son enseñar y plantear las situaciones de cómo resolverlo desde la lógica.
+\end{frame}
+
+\begin{frame}
+\frametitle{Letras proposicionales}
+Como se pueden escoger 9 casillas entonces:\\
+Las letras que hacen referencia a la casilla elegida son a , b , c , d ,e ,f g, h e i.
+Ademas utilizaremos las letras proposicionales A,B,C,D,E,F,G,H,I, para hacer referencia a si hay bomba o no en esa casilla.
+\end{frame}
+
+\begin{frame}
+\frametitle{Regla 1}
+\framesubtitle{Se escogeran dos casillas adyacentes las cuales retornaran 1.
+}
+
+\begin{figure}[hbtp]
+\centering
+\includegraphics[width=6cm]{../../Videos/Ejemplo3.jpg} 
+\caption{Ejemplo de casillas d y e elegidas}
+\end{figure}
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{Representación lógica de la regla 1}
+
+$(a\wedge{b}\wedge{\neg{c}}\wedge{\neg{d}}\wedge{\neg{e}}\wedge{\neg{f}}\wedge{\neg{g}}\wedge{\neg{h}}\wedge{\neg{i}})$\\
+$(a\wedge{\neg{b}}\wedge{\neg{c}}\wedge{d}\wedge{\neg{e}}\wedge{\neg{f}}\wedge{\neg{g}}\wedge{\neg{h}}\wedge{\neg{i}})$\\
+$(\neg{a}\wedge{b}\wedge{c}\wedge{\neg{d}}\wedge{\neg{e}}\wedge{\neg{f}}\wedge{\neg{g}}\wedge{\neg{h}}\wedge{\neg{i}})$\\
+$(\neg{a}\wedge{b}\wedge{\neg{c}}\wedge{\neg{d}}\wedge{e}\wedge{\neg{f}}\wedge{\neg{g}}\wedge{\neg{h}}\wedge{\neg{i}})$.....\\
+Son doce combinaciones en total
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{Regla 2}
+\framesubtitle{Las dos casillas elegidas implican las posibles casillas donde este la bomba}
+
+
+\begin{figure}[hbtp]
+\centering
+\includegraphics[width=6cm]{../../Videos/Ejemplo2.jpg}
+\caption{Las casillas rojas son las posibles casillas donde este la bomba}
+\end{figure}
+
+
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Representación lógica de la regla 2}
+\framesubtitle{Las dos casillas elegidas implican las posibles casillas donde este la bomba}
+
+$(a\wedge{b}) \rightarrow {(D \lor{E})}$\\
+$(a\wedge{d}) \rightarrow {(B \lor{E})}$\\
+$(b\wedge{e}) \rightarrow {(A \lor{C} \lor{D}\lor{F})}$\\
+$(b\wedge{c}) \rightarrow {(E \lor{F} )}$\\
+Y así con todas las posibles uniones de casillas adyacentes que son:\\
+$c \wedge{ f} $\\
+$d \wedge{ g} $\\
+$d \wedge{ e} $\\
+$f \wedge{ i} $\\
+$h \wedge{ i} $.......\\
+
+\end{frame}
+
+\end{document}
+
