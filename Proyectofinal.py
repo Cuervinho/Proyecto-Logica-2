@@ -1,10 +1,18 @@
-#import tkinter as tk
+import tkinter as tk
+
+minas = tk.Tk()
+minas.title("Busca Minas")
+minas.geometry("360x360")
+minas.config(bg = "grey")
+
+#clase árbol binario
 class Tree:
     def __init__(self, l, izq, der):
         self.label = l
         self.left = izq
         self.right = der
 
+#valor interpretación
 def VI(f, I):
     if f.right == None:
         return I[f.label]
@@ -20,7 +28,8 @@ def VI(f, I):
         return 1 - (VI(f.left, I) - VI(f.right, I))**2
     else:
         return "Hay algun error en el planteamiento"
-
+    
+#convertir de polaca inversa a árbol
 def string2tree(A, LetrasProposicionales):
     conectivos = ["O", "Y", ">"]
     pila = []
@@ -38,6 +47,7 @@ def string2tree(A, LetrasProposicionales):
             pila.append(formulaaux)
     return pila[-1]
 
+#imprimir árbol a string
 def Inorder(A):
     if A.right == None:
         return A.label
@@ -45,7 +55,9 @@ def Inorder(A):
         return "-" + Inorder(A.right)
     elif A.label in ["Y", "O", ">"]:
         return "(" + Inorder(A.left) + A.label + Inorder(A.right) + ")"
-
+    
+    
+#tabla de verdad de todas las proposiciones
 def interpretaciones(LetrasProposicionales):
     interps = []
     aux = {}
@@ -64,8 +76,10 @@ def interpretaciones(LetrasProposicionales):
             interps.append(aux1)
     return interps
 
+
+#forma normal conjuntiva
 def enFNC(A):
-    assert(len(A)==4 or len(A)==7), u"Fórmula incorrecta!"
+#    assert(len(A)==4 or len(A)==7), u"Fórmula incorrecta!"
     B = ''
     p = A[0]
     # print('p', p)
@@ -99,49 +113,50 @@ def enFNC(A):
 def Tseitin(A, letrasProposicionalesA):
     letrasProposicionalesB = [chr(x) for x in range(256, 300)]
     assert(not bool(set(letrasProposicionalesA) & set(letrasProposicionalesB))), u"¡Hay letras proposicionales en común!"
+    atomos = letrasProposicionalesA + letrasProposicionalesB
     L = []
     pila = []
     i = -1
     s = A[0]
     
     while len(A) > 0:
-        if s in letrasProposicionalesA and len(pila) > 0 and pila[-1] == "-":
-                i += 1
-                atomo = letrasProposicionalesB[i]
-                pila = pila[:-1]
-                pila.append(atomo)
-                L.append(atomo + "=" + "-" + s)
-                A = A[1:]
-                if len(A) > 0:
-                    s = A[0]
+        if s in atomos and pila[-1] == "-" and len(pila) > 0:
+            i += 1
+            atomo = letrasProposicionalesB[i]
+            pila = pila[:-1]
+            pila.append(atomo)
+            L.append(atomo + "=" + "-" + s)
+            A = A[1:]
+            if len(A) > 0:
+                s = A[0]
         elif s == ")":
             w = pila[-1]
             O = pila[-2]
             v = pila[-3]
-            pila = pila[:len(pila - 4)]
+            pila = pila[:len(pila) - 4]
             i += 1
             atomo = letrasProposicionalesB[i]
             L.append(atomo + "=" + "(" + v + O + w + ")")
             s = atomo
-            
         else:
             pila.append(s)
             A = A[1:]
             if len(A) > 0:
                 s = A[0]
+    
     B = ""
     if i < 0:
         atomo = pila[-1]
     else:
         atomo = letrasProposicionalesB[i]
     
-    for x in L:
-        Y = enFNC(x)
+    for X in L:
+        Y = enFNC(X)
         B += "Y" + Y
     
     B = atomo + B
-    
     return B
+                
 
 
 def Clausula(C):
@@ -163,45 +178,282 @@ def formaClausal(A):
     L = []
     i = 0
     while len(A) > 0:
-        if i == len(A) - 1:
+        if i >= len(A):
             L.append(Clausula(A))
-            A = ""
+            A = []
         else:
             if A[i] == "Y":
                 L.append(Clausula(A[:i]))
-                A = A[i + 1:]
+                A = A[i + 1]
                 i = 0
             else:
                 i += 1
     return L
-
-def clausula_vacia(S):
-    cond = False
-    for x in S:
-        if x == []:
-            cond = True
-    return cond
     
-def clausula_unitaria(S):
-    for x in S:
-        if len(x) == 1:
-            return x[0]
+
+def unitPropagate(S,I):
+    unitaria = False
+    C = []
+    while len(S)!=0:
+        for x in S:
+            if len(x)==1:
+                l = x
+                unitaria = True
+                break
+            elif len(x)==2 and x[0]=='-':
+                l = x
+                unitaria = True
+                break
+        if unitaria == True:
+            C = S[:]
+            count = 0
+            for m in S:
+                C[count]=m
+                for c in range(len(m)):
+                    if len(l) == 1:
+                        if (m[c] == '-' and m[c+1] == l):
+                            yolo = len(m)
+                            C[count] = C[count].replace('-'+C[count][c+1],'')
+                            #C[count] = C[count].replace(C[count][c],'')
+                            if len(C[count])<yolo:
+                                break
+                        elif m[c] == l:
+                            C.remove(C[count])
+                            count-=1
+
+                    elif len(l) == 2:
+                        if m[c] == l[1]:
+                            yolo = len(m)
+                            C[count]= C[count].replace(C[count][c],'')
+                            if len(C[count])<yolo:
+                                break
+                        elif m[c] == '-' and m[c+1] == l[1]:
+                            C.remove(C[count])
+                            count-=1
+                            break
+                        
+                            
+
+                count+=1
+            S = C[:]
+            if len(l) == 1:
+                I[l]=1
+            elif len(l)==2:
+                I[x[1]]=0
+            unitaria=False
         else:
-            return None
-        
-def clausula_complemento(unitaria):
-    if len(unitaria) == 1:
-        return "-" + unitaria
+            break
+    return S,I
+
+
+
+def DPLL(S,I):
+    (S,I) = unitPropagate(S,I)
+    clau_vacia = ""
+    if clau_vacia in S:
+        return "Insatisfacible" ,{}
+    elif len(S)==0:
+        return "Satisfacible" ,I
+    S2 = S[:]
+    count = 0
+    for m in S:
+        S2[count] = m
+        for c in range(len(m)):
+            if m[c] not in I.keys():
+                if m[c] != '-':
+                    l = m[c]
+                    break
+        break
+    for m in S:
+        for c in range(len(m)):
+            if len(l) == 1:
+                if (m[c] == '-' and m[c+1] == l):
+                    yolo = len(m)
+                    S2[count] = S2[count].replace('-'+S2[count][c+1],'')
+                    if len(S2[count])<yolo:
+                        break
+                elif m[c] == l:
+                    S2.remove(S2[count])
+                    count-=1
+        count+=1
+    S = S2[:]
+    if len(l) == 1:
+        I[l]=1
+    elif len(l)==2:
+        I[l]=0
+    
+    #if DPLL(S2,I)== ("Satisfacible",I):
+        #return "Satisfacible",I
+    (S,I) = unitPropagate(S,I)
+    if len(S)==0:
+        return "Satisfacible" ,I
     else:
-        return unitaria[1]
+        S3 = S2[:]
+        count = 0
+        for m in S:
+            S3[count] = m
+            for c in range(len(m)):
+                if m[c] not in I.keys():
+                    if m[c] != '-':
+                        l = m[c]
+                        break
+            break
+        for m in S:
+            S3[count] = m
+            for c in range(len(m)):
+                if len(l)==1:
+                    if m[c] == l:
+                        
+                        yolo = len(m)
+                        S3[count] = S3[count].replace(S3[count][c],'')
+                        if len(S3[count])<yolo:
+                            break
+                    elif (m[c] == '-' and m[c+1] == l):
+                        S3.remove(S3[count])
+                        count-=1
+                        break
+                   
+            count+=1
+        S = S3[:]
+        if len(l)==1:
+            I[l]=0
+        elif len(l)==2:
 
-def UnitPropagate(S, I):
-    #---------------
-    return S, I
+            I[l]=1
+        return DPLL(S3,I)
+    
+def grafico(A, I):
+    if I["a"] == 1 and I["b"] == 1:
+        C1 = tk.Button(minas, text = "1", width = 15, height = 7, relief ="groove").place(x = 0, y = 0)
+        C2 = tk.Button(minas, text = "1", width = 15, height = 7, relief ="groove").place(x = 120, y = 0)
+        C3 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 240, y = 0)
+        C4 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 0, y = 120)
+        C5 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 120, y = 120)
+        C6 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 240, y = 120)
+        C7 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 0, y = 240)
+        C8 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 120, y = 240)
+        C9 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 240, y = 240)
+    
+    if I["a"] == 1 and I["d"] == 1:
+        C1 = tk.Button(minas, text = "1", width = 15, height = 7, relief ="groove").place(x = 0, y = 0)
+        C2 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 120, y = 0)
+        C3 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 240, y = 0)
+        C4 = tk.Button(minas, text = "1", width = 15, height = 7, relief ="groove").place(x = 0, y = 120)
+        C5 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 120, y = 120)
+        C6 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 240, y = 120)
+        C7 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 0, y = 240)
+        C8 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 120, y = 240)
+        C9 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 240, y = 240)
+    
+    if I["b"] == 1 and I["c"] == 1:
+        C1 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 0, y = 0)
+        C2 = tk.Button(minas, text = "1", width = 15, height = 7, relief ="groove").place(x = 120, y = 0)
+        C3 = tk.Button(minas, text = "1", width = 15, height = 7, relief ="groove").place(x = 240, y = 0)
+        C4 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 0, y = 120)
+        C5 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 120, y = 120)
+        C6 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 240, y = 120)
+        C7 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 0, y = 240)
+        C8 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 120, y = 240)
+        C9 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 240, y = 240)
+    
+    if I["b"] == 1 and I["e"] == 1:
+        C1 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 0, y = 0)
+        C2 = tk.Button(minas, text = "1", width = 15, height = 7, relief ="groove").place(x = 120, y = 0)
+        C3 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 240, y = 0)
+        C4 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 0, y = 120)
+        C5 = tk.Button(minas, text = "1", width = 15, height = 7, relief ="groove").place(x = 120, y = 120)
+        C6 = tk.Button(minas, bg = "red",width = 15, height = 7, relief ="groove").place(x = 240, y = 120)
+        C7 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 0, y = 240)
+        C8 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 120, y = 240)
+        C9 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 240, y = 240)
+    
+    if I["c"] == 1 and I["f"] == 1:
+        C1 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 0, y = 0)
+        C2 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 120, y = 0)
+        C3 = tk.Button(minas, text = "1", width = 15, height = 7, relief ="groove").place(x = 240, y = 0)
+        C4 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 0, y = 120)
+        C5 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 120, y = 120)
+        C6 = tk.Button(minas, text = "1", width = 15, height = 7, relief ="groove").place(x = 240, y = 120)
+        C7 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 0, y = 240)
+        C8 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 120, y = 240)
+        C9 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 240, y = 240)
+    
+    if I["d"] == 1 and I["e"] == 1:
+        C1 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 0, y = 0)
+        C2 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 120, y = 0)
+        C3 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 240, y = 0)
+        C4 = tk.Button(minas, text = "1", width = 15, height = 7, relief ="groove").place(x = 0, y = 120)
+        C5 = tk.Button(minas, text = "1", width = 15, height = 7, relief ="groove").place(x = 120, y = 120)
+        C6 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 240, y = 120)
+        C7 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 0, y = 240)
+        C8 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 120, y = 240)
+        C9 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 240, y = 240)
+    
+    if I["f"] == 1 and I["e"] == 1:
+        C1 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 0, y = 0)
+        C2 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 120, y = 0)
+        C3 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 240, y = 0)
+        C4 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 0, y = 120)
+        C5 = tk.Button(minas, text = "1", width = 15, height = 7, relief ="groove").place(x = 120, y = 120)
+        C6 = tk.Button(minas, text = "1", width = 15, height = 7, relief ="groove").place(x = 240, y = 120)
+        C7 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 0, y = 240)
+        C8 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 120, y = 240)
+        C9 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 240, y = 240)
 
-def DPLL(S, I):
-    #---------------
-    return "ok"
+    if I["h"] == 1 and I["e"] == 1:
+        C1 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 0, y = 0)
+        C2 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 120, y = 0)
+        C3 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 240, y = 0)
+        C4 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 0, y = 120)
+        C5 = tk.Button(minas, text = "1", width = 15, height = 7, relief ="groove").place(x = 120, y = 120)
+        C6 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 240, y = 120)
+        C7 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 0, y = 240)
+        C8 = tk.Button(minas, text = "1", width = 15, height = 7, relief ="groove").place(x = 120, y = 240)
+        C9 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 240, y = 240)
+        
+    if I["f"] == 1 and I["i"] == 1:
+        C1 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 0, y = 0)
+        C2 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 120, y = 0)
+        C3 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 240, y = 0)
+        C4 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 0, y = 120)
+        C5 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 120, y = 120)
+        C6 = tk.Button(minas, text = "1", width = 15, height = 7, relief ="groove").place(x = 240, y = 120)
+        C7 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 0, y = 240)
+        C8 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 120, y = 240)
+        C9 = tk.Button(minas, text = "1", width = 15, height = 7, relief ="groove").place(x = 240, y = 240)
+    
+    if I["g"] == 1 and I["d"] == 1:
+        C1 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 0, y = 0)
+        C2 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 120, y = 0)
+        C3 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 240, y = 0)
+        C4 = tk.Button(minas, text = "1", width = 15, height = 7, relief ="groove").place(x = 0, y = 120)
+        C5 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 120, y = 120)
+        C6 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 240, y = 120)
+        C7 = tk.Button(minas, text = "1", width = 15, height = 7, relief ="groove").place(x = 0, y = 240)
+        C8 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 120, y = 240)
+        C9 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 240, y = 240)
+    
+    if I["g"] == 1 and I["h"] == 1:
+        C1 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 0, y = 0)
+        C2 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 120, y = 0)
+        C3 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 240, y = 0)
+        C4 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 0, y = 120)
+        C5 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 120, y = 120)
+        C6 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 240, y = 120)
+        C7 = tk.Button(minas, text = "1", width = 15, height = 7, relief ="groove").place(x = 0, y = 240)
+        C8 = tk.Button(minas, text = "1", width = 15, height = 7, relief ="groove").place(x = 120, y = 240)
+        C9 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 240, y = 240)
+        
+    if I["i"] == 1 and I["h"] == 1:
+        C1 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 0, y = 0)
+        C2 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 120, y = 0)
+        C3 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 240, y = 0)
+        C4 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 0, y = 120)
+        C5 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 120, y = 120)
+        C6 = tk.Button(minas, bg = "red", width = 15, height = 7, relief ="groove").place(x = 240, y = 120)
+        C7 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 0, y = 240)
+        C8 = tk.Button(minas, text = "1", width = 15, height = 7, relief ="groove").place(x = 120, y = 240)
+        C9 = tk.Button(minas, text = "1", width = 15, height = 7, relief ="groove").place(x = 240, y = 240)
 
 LetrasProposicionales = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "A", "B", "C", "D", "E", "F", "G", "H", "I"]
 
@@ -239,46 +491,28 @@ REGLA_FINAL = RP1+RP2+"Y"
 
 formula_global = string2tree(REGLA_FINAL, LetrasProposicionales)
 
-interpretaciones_form = interpretaciones(LetrasProposicionales)
-interpretaciones_form_aux = []
-# print(len(interpretaciones_form))
-# print(interpretaciones_form[15])
-# print(len(interpretaciones_form))
-# print(interpretaciones_form[15])
+form = Inorder(formula_global)
 
-for i in interpretaciones_form:
-    aux = VI(formula_global, i)
-    if (aux == 1):
-        interpretaciones_form_aux.append(i)
+tseitin = Tseitin(form, LetrasProposicionales)
+
+causal = formaClausal(tseitin)
+
+dpll = DPLL(causal, {})
+
+grafico(dpll)
+
+#interpretaciones_form = interpretaciones(LetrasProposicionales)
+#interpretaciones_form_aux = []
+#
+#for i in interpretaciones_form:
+#    aux = VI(formula_global, i)
+#    if (aux == 1):
+#        interpretaciones_form_aux.append(i)
 
 
-#print(len(interpretaciones_form_aux))
-
-print(Inorder(formula_global))
+#print(Inorder(formula_global))
 
 #print(interpretaciones_form_aux)
 
 
-
-
-#------ creación ventana -----------------
-#minas = tk.Tk()
-#minas.title("Busca Minas")
-#minas.geometry("360x360")
-#minas.config(bg = "grey")
-#
-#def show_number():
-#    C1 = tk.Button(text = "1")
-#
-##------ creación botones -----------------
-#C1 = tk.Button(minas, command = show_number, width = 15, height = 7, relief ="groove").place(x = 0, y = 0)
-#C2 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 120, y = 0)
-#C3 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 240, y = 0)
-#C4 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 0, y = 120)
-#C5 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 120, y = 120)
-#C6 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 240, y = 120)
-#C7 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 0, y = 240)
-#C8 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 120, y = 240)
-#C9 = tk.Button(minas, width = 15, height = 7, relief ="groove").place(x = 240, y = 240)
-#
-#minas.mainloop()
+minas.mainloop()
